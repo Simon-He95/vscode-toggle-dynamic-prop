@@ -1,8 +1,7 @@
-<p align="center">
-<img height="200" src="./assets/kv.png" alt="to unocss">
-</p>
-<p align="center"> English | <a href="./README_zh.md">简体中文</a></p>
+Use the shortcut key to switch the current prop to dynamic and non-dynamic mode, because there may be multiple types of this attribute, not necessarily a string or an object, etc., which can be changed at will.
 
+## Keybingdings
+- `isMac` ? `cmd+shift+t` : `ctrl+shift+t`
 
 ## :coffee:
 
