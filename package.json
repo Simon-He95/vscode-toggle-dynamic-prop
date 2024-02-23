@@ -1,0 +1,83 @@
+{
+  "publisher": "simonhe",
+  "name": "vscode-vue-toggle-dynamic-prop",
+  "displayName": "vscode-vue-toggle-dynamic-prop",
+  "version": "0.0.0",
+  "packageManager": "pnpm@8.10.5",
+  "description": "vscode-vue-toggle-dynamic-prop",
+  "author": "Simon He <https://github.com/Simon-He95>",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/Simon-He95",
+  "homepage": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop"
+  },
+  "bugs": {
+    "url": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop/issues"
+  },
+  "sponsor": {
+    "url": "https://github.com/Simon-He95/sponsor"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/index.js",
+  "icon": "icon.png",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "vscode": "^1.84.2"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
+        "title": "切换 vue 中动态属性的标识"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
+        "key": "cmd+shift+t",
+        "when": "isMac"
+      },
+      {
+        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
+        "key": "ctrl+shift+t",
+        "when": "isWin"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": "pnpm build --watch",
+    "test": "vitest",
+    "build": "tsup src/index.ts --external vscode",
+    "pack": "vsce package --no-dependencies",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix",
+    "publish": "vsce publish --no-dependencies",
+    "typecheck": "tsc --noEmit",
+    "release": "bumpp && pnpm run publish"
+  },
+  "devDependencies": {
+    "@simon_he/eslint-config": "^0.0.6",
+    "@types/node": "^18.18.12",
+    "@types/vscode": "^1.84.2",
+    "@vscode-use/utils": "^0.0.84",
+    "bumpp": "^9.2.0",
+    "eslint": "^8.54.0",
+    "esno": "^0.16.3",
+    "pnpm": "^8.10.5",
+    "rimraf": "^4.4.1",
+    "tsup": "^6.7.0",
+    "typescript": "^5.3.2",
+    "vite": "^4.5.0",
+    "vitest": "^0.29.8",
+    "vsce": "^2.15.0"
+  }
+}
