@@ -14,24 +14,77 @@ export async function activate(context: ExtensionContext) {
     if (!lineText)
       return
     let start = selection.character
-    while (start > 0 && !/['"=\s@!~:]/.test(lineText[--start])) {
+    let end = selection.character
+    while (end < lineText.length && !/"/.test(lineText[end])) {
+      //
+      end++
+    }
+    while (start > 0 && !/"/.test(lineText[--start])) {
       //
     }
     start--
     if (lineText[start] !== '=')
       return
+    const prefixEnd = start
     while (start > 0 && !/['"=\s@!~:]/.test(lineText[--start])) {
       //
+    }
+    const prefixStart = start
+    const prefixName = lineText.slice(prefixStart + 1, prefixEnd)
+    const moreUpdates: ((edit: any) => void)[] = []
+    const content = lineText.slice(prefixEnd + 2, end)
+    let modifiedText = content
+    switch (prefixName) {
+      case 'class': {
+        if (lineText[start] === ':') {
+          if (content.startsWith('[') && content.endsWith(']'))
+            modifiedText = content.slice(1, -1).trim().split(',').map(i => i.trim().replace(/'/g, '')).join(' ')
+          moreUpdates.push((edit: any) => {
+            edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
+          })
+        }
+        else {
+          modifiedText = modifiedText.replace(/\s+/g, ' ').split(' ').map(i => `'${i}'`).join(', ')
+          moreUpdates.push((edit: any) => {
+            edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `[${modifiedText}]`)
+          })
+        }
+        break
+      }
+      case 'style': {
+        if (lineText[start] === ':') {
+          if (content.startsWith('{') && content.endsWith('}'))
+            modifiedText = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '')
+          moreUpdates.push((edit: any) => {
+            edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
+          })
+        }
+        else {
+          modifiedText = modifiedText.split(';').map((i: string) => {
+            if (!i)
+              return false
+            i = i.trim()
+            const [key, value] = i.split(':')
+            return `'${key.trim()}': '${value.trim()}'`
+          }).filter(Boolean).join(', ')
+          moreUpdates.push((edit: any) => {
+            edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
+          })
+        }
+        break
+      }
     }
 
     if (lineText[start] === ':') {
       updateText((edit) => {
         edit.replace(createRange(createPosition(selection.line, start), createPosition(selection.line, start + 1)), '')
+        moreUpdates.forEach(cb => cb(edit))
       })
     }
     else {
       updateText((edit) => {
         edit.insert(createPosition(selection.line, start + 1), ':')
+        moreUpdates.forEach(cb => cb(edit))
       })
     }
   }))
