@@ -2,7 +2,7 @@
   "publisher": "simonhe",
   "name": "vscode-vue-toggle-dynamic-prop",
   "displayName": "vscode-vue-toggle-dynamic-prop",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "packageManager": "pnpm@8.10.5",
   "description": "vscode-vue-toggle-dynamic-prop",
   "author": "Simon He <https://github.com/Simon-He95>",
