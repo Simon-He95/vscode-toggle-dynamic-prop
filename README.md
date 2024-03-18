@@ -3,6 +3,8 @@ Use the shortcut key to switch the current prop to dynamic and non-dynamic mode,
 ## Keybingdings
 - `isMac` ? `cmd+t` : `ctrl+t`
 
+![demo](/assets/demo.gif)
+
 ## :coffee:
 
 [buy me a cup of coffee](https://github.com/Simon-He95/sponsor)
