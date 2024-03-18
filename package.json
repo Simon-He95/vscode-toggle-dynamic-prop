@@ -1,20 +1,20 @@
 {
   "publisher": "simonhe",
   "name": "vscode-toggle-dynamic-prop",
-  "displayName": "vscode-vue-toggle-dynamic-prop",
+  "displayName": "vscode-toggle-dynamic-prop",
   "version": "0.0.4",
   "packageManager": "pnpm@8.10.5",
   "description": "vscode-vue-toggle-dynamic-prop",
   "author": "Simon He <https://github.com/Simon-He95>",
   "license": "MIT",
   "funding": "https://github.com/sponsors/Simon-He95",
-  "homepage": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop#readme",
+  "homepage": "https://github.com/Simon-He95/vscode-toggle-dynamic-prop#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop"
+    "url": "https://github.com/Simon-He95/vscode-toggle-dynamic-prop"
   },
   "bugs": {
-    "url": "https://github.com/Simon-He95/vscode-vue-toggle-dynamic-prop/issues"
+    "url": "https://github.com/Simon-He95/vscode-toggle-dynamic-prop/issues"
   },
   "sponsor": {
     "url": "https://github.com/Simon-He95/sponsor"
