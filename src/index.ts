@@ -1,5 +1,6 @@
 import { createPosition, createRange, getActiveTextEditorLanguageId, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
 import type { Disposable, ExtensionContext } from 'vscode'
+import { camelize, hyphenate } from 'lazy-js-utils'
 
 export async function activate(context: ExtensionContext) {
   const disposes: Disposable[] = []
@@ -39,6 +40,10 @@ export async function activate(context: ExtensionContext) {
         //
       }
       start--
+      if (lineText[start] === '{') {
+        start--
+        end++
+      }
       if (lineText[start] !== '=')
         return
     }
@@ -108,13 +113,34 @@ export async function activate(context: ExtensionContext) {
       }
     }
     else if (isReact) {
-      const content = lineText.slice(prefixEnd + 2, end)
+      let content = lineText.slice(prefixEnd + 2, end)
       if (lineText[prefixEnd + 1] === '"') {
+        if (prefixName === 'style') {
+          content = content.split(';').map((i: string) => {
+            if (!i)
+              return false
+            i = i.trim()
+            const [key, value] = i.split(':')
+            return `'${camelize(key.trim())}': '${value.trim()}'`
+          }).filter(Boolean).join(', ')
+        }
         updateText((edit) => {
-          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${content}}`)
+          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${prefixName === 'className'
+            ? `\`${content}\``
+            : prefixName === 'style'
+              ? `{${content}}`
+              : content}}`)
         })
       }
       else if (lineText[prefixEnd + 1] === '{') {
+        if (content[0] === '`' || content[0] === '{')
+          content = content.slice(1, -1)
+        if (prefixName === 'style') {
+          content = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '').split(';').map((item) => {
+            const [key, val] = item.split(':')
+            return `${hyphenate(key)}: ${val}`
+          }).join(';')
+        }
         updateText((edit) => {
           edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content}"`)
         })
