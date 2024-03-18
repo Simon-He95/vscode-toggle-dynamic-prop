@@ -1,7 +1,7 @@
 Use the shortcut key to switch the current prop to dynamic and non-dynamic mode, because there may be multiple types of this attribute, not necessarily a string or an object, etc., which can be changed at will.
 
 ## Keybingdings
-- `isMac` ? `cmd+shift+t` : `ctrl+shift+t`
+- `isMac` ? `cmd+t` : `ctrl+t`
 
 ## :coffee:
 

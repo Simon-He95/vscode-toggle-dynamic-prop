@@ -1,6 +1,6 @@
 {
   "publisher": "simonhe",
-  "name": "vscode-vue-toggle-dynamic-prop",
+  "name": "vscode-toggle-dynamic-prop",
   "displayName": "vscode-vue-toggle-dynamic-prop",
   "version": "0.0.4",
   "packageManager": "pnpm@8.10.5",
@@ -36,19 +36,19 @@
   "contributes": {
     "commands": [
       {
-        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
-        "title": "切换 vue 中动态属性的标识"
+        "command": "vscode-toggle-dynamic-prop.toggleDynamicProp",
+        "title": "切换 vue 或 react 中动态属性的标识"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
-        "key": "cmd+shift+t",
+        "command": "vscode-toggle-dynamic-prop.toggleDynamicProp",
+        "key": "cmd+t",
         "when": "isMac"
       },
       {
-        "command": "vscode-vue-toggle-dynamic-prop.toggleDynamicProp",
-        "key": "ctrl+shift+t",
+        "command": "vscode-toggle-dynamic-prop.toggleDynamicProp",
+        "key": "ctrl+t",
         "when": "isWin"
       }
     ]

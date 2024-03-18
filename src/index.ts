@@ -3,9 +3,11 @@ import type { Disposable, ExtensionContext } from 'vscode'
 
 export async function activate(context: ExtensionContext) {
   const disposes: Disposable[] = []
-  disposes.push(registerCommand('vscode-vue-toggle-dynamic-prop.toggleDynamicProp', () => {
-    const isVue = getActiveTextEditorLanguageId() === 'vue'
-    if (!isVue)
+  disposes.push(registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
+    const language = getActiveTextEditorLanguageId()
+    const isVue = language === 'vue'
+    const isReact = language === 'javascriptreact' || language === 'typescriptreact'
+    if (!isVue && !isReact)
       return
     const selection = getSelection()
     if (!selection)
@@ -13,22 +15,39 @@ export async function activate(context: ExtensionContext) {
     const lineText = getLineText(selection.line)
     if (!lineText)
       return
+
     let start = selection.character
     let end = selection.character
-    while (end < lineText.length && !/"/.test(lineText[end])) {
-      //
-      end++
+    if (isVue) {
+      while (end < lineText.length && !/"/.test(lineText[end])) {
+        //
+        end++
+      }
+      while (start > 0 && !/"/.test(lineText[--start])) {
+        //
+      }
+      start--
+      if (lineText[start] !== '=')
+        return
     }
-    while (start > 0 && !/"/.test(lineText[--start])) {
-      //
+    else if (isReact) {
+      while (end < lineText.length && !/["}]/.test(lineText[end])) {
+        //
+        end++
+      }
+      while (start > 0 && !/["{]/.test(lineText[--start])) {
+        //
+      }
+      start--
+      if (lineText[start] !== '=')
+        return
     }
-    start--
-    if (lineText[start] !== '=')
-      return
+
     const prefixEnd = start
     while (start > 0 && !/['"=\s@!~:]/.test(lineText[--start])) {
       //
     }
+
     const prefixStart = start
     const prefixName = lineText.slice(prefixStart + 1, prefixEnd)
     const moreUpdates: ((edit: any) => void)[] = []
@@ -74,18 +93,32 @@ export async function activate(context: ExtensionContext) {
         break
       }
     }
-
-    if (lineText[start] === ':') {
-      updateText((edit) => {
-        edit.replace(createRange(createPosition(selection.line, start), createPosition(selection.line, start + 1)), '')
-        moreUpdates.forEach(cb => cb(edit))
-      })
+    if (isVue) {
+      if (lineText[start] === ':') {
+        updateText((edit) => {
+          edit.replace(createRange(createPosition(selection.line, start), createPosition(selection.line, start + 1)), '')
+          moreUpdates.forEach(cb => cb(edit))
+        })
+      }
+      else {
+        updateText((edit) => {
+          edit.insert(createPosition(selection.line, start + 1), ':')
+          moreUpdates.forEach(cb => cb(edit))
+        })
+      }
     }
-    else {
-      updateText((edit) => {
-        edit.insert(createPosition(selection.line, start + 1), ':')
-        moreUpdates.forEach(cb => cb(edit))
-      })
+    else if (isReact) {
+      const content = lineText.slice(prefixEnd + 2, end)
+      if (lineText[prefixEnd + 1] === '"') {
+        updateText((edit) => {
+          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${content}}`)
+        })
+      }
+      else if (lineText[prefixEnd + 1] === '{') {
+        updateText((edit) => {
+          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content}"`)
+        })
+      }
     }
   }))
 
