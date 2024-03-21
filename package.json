@@ -37,7 +37,7 @@
     "commands": [
       {
         "command": "vscode-toggle-dynamic-prop.toggleDynamicProp",
-        "title": "切换 vue 或 react 中动态属性的标识"
+        "title": "%vscode-toggle-dynamic-prop.title%"
       }
     ],
     "keybindings": [
