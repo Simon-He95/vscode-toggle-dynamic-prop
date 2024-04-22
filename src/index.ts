@@ -4,6 +4,11 @@ import { camelize, hyphenate } from 'lazy-js-utils'
 
 export async function activate(context: ExtensionContext) {
   const disposes: Disposable[] = []
+  const commaMap: any = {
+    '{': '}',
+    '\'': '\'',
+    '"': '"',
+  }
   disposes.push(registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
     const language = getActiveTextEditorLanguageId()
     const isVue = language === 'vue'
@@ -19,33 +24,16 @@ export async function activate(context: ExtensionContext) {
 
     let start = selection.character
     let end = selection.character
-    if (isVue) {
-      while (end < lineText.length && !/"/.test(lineText[end])) {
-        //
-        end++
-      }
-      while (start > 0 && !/"/.test(lineText[--start])) {
-        //
-      }
-      start--
-      if (lineText[start] !== '=')
-        return
+    while (start > 0 && !/=/.test(lineText[--start])) {
+      //
     }
-    else if (isReact) {
-      while (end < lineText.length && !/["}]/.test(lineText[end])) {
-        //
-        end++
-      }
-      while (start > 0 && !/["{]/.test(lineText[--start])) {
-        //
-      }
-      start--
-      if (lineText[start] === '{') {
-        start--
-        end++
-      }
-      if (lineText[start] !== '=')
-        return
+
+    const comma = commaMap[lineText[start + 1]]
+    if (!comma)
+      return
+    while (end < lineText.length && lineText[end] !== comma) {
+      //
+      end++
     }
 
     const prefixEnd = start
@@ -114,7 +102,7 @@ export async function activate(context: ExtensionContext) {
     }
     else if (isReact) {
       let content = lineText.slice(prefixEnd + 2, end)
-      if (lineText[prefixEnd + 1] === '"') {
+      if (/['"']/.test(lineText[prefixEnd + 1])) {
         if (prefixName === 'style') {
           content = content.split(';').map((i: string) => {
             if (!i)
@@ -122,7 +110,7 @@ export async function activate(context: ExtensionContext) {
             i = i.trim()
             const [key, value] = i.split(':')
             return `'${camelize(key.trim())}': '${value.trim()}'`
-          }).filter(Boolean).join(', ')
+          }).filter(Boolean).join(', ').replace(/"/g, '\'')
         }
         updateText((edit) => {
           edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${prefixName === 'className'
@@ -142,7 +130,7 @@ export async function activate(context: ExtensionContext) {
           }).join(';')
         }
         updateText((edit) => {
-          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content}"`)
+          edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content.replace(/"/g, '\'')}"`)
         })
       }
     }
