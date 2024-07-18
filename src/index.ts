@@ -102,7 +102,7 @@ export async function activate(context: ExtensionContext) {
     }
     else if (isReact) {
       let content = lineText.slice(prefixEnd + 2, end)
-      if (/['"']/.test(lineText[prefixEnd + 1])) {
+      if (/['"]/.test(lineText[prefixEnd + 1])) {
         if (prefixName === 'style') {
           content = content.split(';').map((i: string) => {
             if (!i)
