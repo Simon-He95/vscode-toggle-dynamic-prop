@@ -2,6 +2,7 @@ import { createExtension, createPosition, createRange, getActiveTextEditorLangua
 import { camelize, hyphenate } from 'lazy-js-utils'
 
 export = createExtension(() => {
+  // 🤔 是否需要支持 `` 跨行 ？
   const commaMap: any = {
     '{': '}',
     '\'': '\'',
@@ -38,7 +39,7 @@ export = createExtension(() => {
           //
         }
       }
-      if (!comma)
+      if (!comma || !(comma in commaMap))
         return
       while (end < lineText.length && lineText[end] !== comma) {
         end++
@@ -122,6 +123,7 @@ export = createExtension(() => {
           }
         }
       }
+
       if (prefixName) {
         if (isVue) {
           if (lineText[start] === ':') {
@@ -180,6 +182,10 @@ export = createExtension(() => {
         // 如果有 selection
         const { selectedTextArray, line, selection } = getSelection()!
         const selectedText = selectedTextArray[0]
+        if (!(lineText[start + 1] in commaMap)) {
+          start++
+        }
+
         if (selectedText) {
           if (comma === '`') {
             if (selectedText.startsWith('${') && selectedText.endsWith('}')) {
