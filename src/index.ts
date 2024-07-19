@@ -15,6 +15,7 @@ export = createExtension(() => {
       const language = getActiveTextEditorLanguageId()
       const isVue = language === 'vue'
       const isReact = language === 'javascriptreact' || language === 'typescriptreact'
+      let vueRemoteDynamicPrefix = true
       if (!isVue && !isReact)
         return
       const selection = getSelection()
@@ -104,20 +105,84 @@ export = createExtension(() => {
               const flag = lineText[prefixEnd + 2] === '`'
               // 如果 content 中只包含 xx_xxx.xx 的形式，认为是字符串拼接，加上 ``, 否则不加
               const isPureVariable = /^\w+(?:\.\w+)*$/.test(content)
-              if (lineText[start] === ':') {
-                if (!flag)
-                  break
-
-                moreUpdates.push((edit) => {
-                  edit.replace(createRange([selection.line, prefixEnd + 2], [selection.line, prefixEnd + 3]), '')
-                  edit.replace(createRange([selection.line, end - 1], [selection.line, end]), '')
-                })
+              const { selectedTextArray, line, selection: _selection } = getSelection()!
+              const selectedText = selectedTextArray[0]
+              if (selectedText) {
+                if (lineText[start] === ':') {
+                  const dynamicReg = new RegExp(`\\\${\\s*${selectedText}\\s*}`)
+                  const dynamicVariableMatch = content.match(dynamicReg)
+                  const isMoreDynamicVariable = /\$\{[^}]+\}/.test(content.replace(dynamicReg, ''))
+                  const temp = !isMoreDynamicVariable && lineText[prefixEnd + 2] === '`' && lineText[end - 1] === '`'
+                  if (!temp) {
+                    vueRemoteDynamicPrefix = false
+                  }
+                  if (selectedText.startsWith('${') && selectedText.endsWith('}')) {
+                    // 删除 ${}
+                    // 如果 content 没有任何 ${xx}, 则 `` 也删除
+                    if (!temp) {
+                      vueRemoteDynamicPrefix = false
+                    }
+                    moreUpdates.push((edit) => {
+                      edit.replace(createRange([_selection.start.line, _selection.start.character], [_selection.end.line, _selection.end.character]), selectedText.slice(2, -1).trim())
+                      if (temp) {
+                        edit.replace(createRange([line, prefixEnd + 2], [line, prefixEnd + 3]), '')
+                        edit.replace(createRange([line, end - 1], [line, end]), '')
+                      }
+                    })
+                  }
+                  else {
+                    // 如果本身在 ${} 内
+                    if (dynamicVariableMatch) {
+                      if (!temp) {
+                        vueRemoteDynamicPrefix = false
+                      }
+                      moreUpdates.push((edit) => {
+                        edit.replace(createRange([_selection.start.line, prefixEnd + 2 + dynamicVariableMatch.index!], [_selection.start.line, prefixEnd + 2 + dynamicVariableMatch.index! + dynamicVariableMatch[0].length]), selectedText.trim())
+                        if (temp) {
+                          edit.replace(createRange([line, prefixEnd + 2], [line, prefixEnd + 3]), '')
+                          edit.replace(createRange([line, end - 1], [line, end]), '')
+                        }
+                      })
+                    }
+                    else {
+                      vueRemoteDynamicPrefix = false
+                      moreUpdates.push((edit) => {
+                        if (!flag) {
+                          edit.insert(createPosition([line, prefixEnd + 2]), '`')
+                          edit.insert(createPosition([line, end]), '`')
+                        }
+                        edit.replace(createRange([_selection.start.line, _selection.start.character], [_selection.end.line, _selection.end.character]), `\${${selectedText.trim()}}`)
+                      })
+                    }
+                  }
+                }
+                else if (!flag) {
+                  moreUpdates.push((edit) => {
+                    edit.insert(createPosition(selection.line, prefixEnd + 2), '`')
+                    edit.insert(createPosition(selection.line, end), '`')
+                    edit.replace(createRange([_selection.start.line, _selection.start.character], [_selection.end.line, _selection.end.character]), `\${${selectedText}}`)
+                  })
+                }
               }
-              else if (!flag && !isPureVariable) {
-                moreUpdates.push((edit) => {
-                  edit.insert(createPosition(selection.line, prefixEnd + 2), '`')
-                  edit.insert(createPosition(selection.line, end), '`')
-                })
+              else {
+                if (lineText[start] === ':') {
+                  if (!flag)
+                    break
+
+                  moreUpdates.push((edit) => {
+                    edit.replace(createRange([selection.line, prefixEnd + 2], [selection.line, prefixEnd + 3]), '')
+                    edit.replace(createRange([selection.line, end - 1], [selection.line, end]), '')
+                    for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
+                      edit.replace(createRange([line, prefixEnd + 2 + match.index], [line, prefixEnd + 2 + match.index + match[0].length]), match[1].trim())
+                    }
+                  })
+                }
+                else if (!flag && !isPureVariable) {
+                  moreUpdates.push((edit) => {
+                    edit.insert(createPosition(selection.line, prefixEnd + 2), '`')
+                    edit.insert(createPosition(selection.line, end), '`')
+                  })
+                }
               }
             }
           }
@@ -128,7 +193,8 @@ export = createExtension(() => {
         if (isVue) {
           if (lineText[start] === ':') {
             updateText((edit) => {
-              edit.replace(createRange(createPosition(selection.line, start), createPosition(selection.line, start + 1)), '')
+              if (vueRemoteDynamicPrefix)
+                edit.replace(createRange(createPosition(selection.line, start), createPosition(selection.line, start + 1)), '')
               moreUpdates.forEach(cb => cb(edit))
             })
           }
@@ -204,9 +270,16 @@ export = createExtension(() => {
               // 如果本身在 ${} 内
               const dynamicReg = new RegExp(`\\\${\\s*${selectedText}\\s*}`)
               const dynamicVariableMatch = content.match(dynamicReg)
+              const isMoreDynamicVariable = /\$\{[^}]+\}/.test(content.replace(dynamicReg, ''))
               if (dynamicVariableMatch) {
                 updateText((edit) => {
                   edit.replace(createRange([selection.start.line, start + 2 + dynamicVariableMatch.index!], [selection.start.line, start + 2 + dynamicVariableMatch.index! + dynamicVariableMatch[0].length]), selectedText.trim())
+                  if (isMoreDynamicVariable) {
+                    if (!isMoreDynamicVariable) {
+                      edit.replace(createRange([line, start + 1], [line, start + 2]), '\'')
+                      edit.replace(createRange([line, end], [line, end + 1]), '\'')
+                    }
+                  }
                 })
               }
               else {
