@@ -12,6 +12,7 @@ module.exports = antfu(
     rules: {
       // overrides
       'no-restricted-syntax': 'off',
+      'no-cond-assign': 'off',
     },
   },
 )

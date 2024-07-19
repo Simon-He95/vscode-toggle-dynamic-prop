@@ -66,7 +66,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.23.0",
-    "@types/node": "^18.19.40",
+    "@types/node": "^18.19.41",
     "@types/vscode": "1.84.2",
     "@vscode-use/utils": "0.1.10-beta.1",
     "bumpp": "^9.4.1",
