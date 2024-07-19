@@ -13,6 +13,7 @@ module.exports = antfu(
       // overrides
       'no-restricted-syntax': 'off',
       'no-cond-assign': 'off',
+      'no-irregular-whitespace': 'off',
     },
   },
 )

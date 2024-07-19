@@ -1,4 +1,4 @@
-Use the shortcut key to switch the current prop to dynamic and non-dynamic mode, because there may be multiple types of this attribute, not necessarily a string or an object, etc., which can be changed at will.
+Use shortcut keys to switch the current prop between dynamic and non-dynamic modes, because this property may have multiple types, not necessarily strings but also objects, etc., which can be changed at will. For example, the network address originally used suddenly needs to be spliced ​​with variables according to the environment, or the string is suddenly not suitable for expression and needs to be spliced ​​with variables, etc. At this time, you can use this plug-in to quickly switch
 
 ## Keybingdings
 - `isMac` ? `cmd+t` : `ctrl+t`
