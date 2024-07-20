@@ -1,4 +1,4 @@
-import { createExtension, createPosition, createRange, getActiveTextEditorLanguageId, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
+import { createExtension, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
 
 export = createExtension(() => {
@@ -8,16 +8,31 @@ export = createExtension(() => {
     '\'': '\'',
     '"': '"',
     '`': '`',
+    '}': '}',
   }
 
   return [
     registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
       const language = getActiveTextEditorLanguageId()
-      const isVue = language === 'vue'
+      let isVue = language === 'vue'
       const isReact = language === 'javascriptreact' || language === 'typescriptreact'
+      const currentFileUrl = getCurrentFileUrl()!
+      let isVueTsx = false
+      let isVueVine = false
       let vueRemoteDynamicPrefix = true
-      if (!isVue && !isReact)
-        return
+      if (isVue) {
+        // 如果是 vue，还要进一步考虑 lang 是否是 tsx, 则使用 react 的方式处理
+        const code = getActiveText()!
+        if (/lang=["']tsx["']/.test(code)) {
+          isVueTsx = true
+          isVue = false
+        }
+      }
+      else {
+        isVueVine = currentFileUrl.endsWith('.vine.ts')
+        if (isVueVine)
+          isVue = true
+      }
       const selection = getSelection()
       if (!selection)
         return
@@ -45,6 +60,9 @@ export = createExtension(() => {
       while (end < lineText.length && lineText[end] !== comma) {
         end++
       }
+      // tsx 会存在 {{}}
+      if (lineText[end + 1] === comma && comma === '}')
+        end++
 
       if (lineText[end] !== comma) {
         console.error(`未匹配到正确的结束富符号 ${comma}`)
@@ -62,41 +80,52 @@ export = createExtension(() => {
       let modifiedText = content
       switch (prefixName) {
         case 'class': {
-          if (lineText[start] === ':') {
-            if (content.startsWith('[') && content.endsWith(']'))
-              modifiedText = content.slice(1, -1).trim().split(',').map(i => i.trim().replace(/'/g, '')).join(' ')
-            moreUpdates.push((edit: any) => {
-              edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
-            })
+          if (isVue) {
+            if (lineText[start] === ':') {
+              if (content.startsWith('[') && content.endsWith(']'))
+                modifiedText = content.slice(1, -1).trim().split(',').map(i => i.trim().replace(/'/g, '')).join(' ')
+              moreUpdates.push((edit: any) => {
+                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
+              })
+            }
+            else {
+              modifiedText = modifiedText.replace(/\s+/g, ' ').split(' ').map(i => `'${i}'`).join(', ')
+              moreUpdates.push((edit: any) => {
+                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `[${modifiedText}]`)
+              })
+            }
           }
-          else {
-            modifiedText = modifiedText.replace(/\s+/g, ' ').split(' ').map(i => `'${i}'`).join(', ')
-            moreUpdates.push((edit: any) => {
-              edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `[${modifiedText}]`)
-            })
+          else if (isVueTsx) {
+            //
           }
           break
         }
         case 'style': {
-          if (lineText[start] === ':') {
-            if (content.startsWith('{') && content.endsWith('}'))
-              modifiedText = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '')
-            moreUpdates.push((edit: any) => {
-              edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
-            })
+          if (isVue) {
+            if (lineText[start] === ':') {
+              if (content.startsWith('{') && content.endsWith('}'))
+                modifiedText = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '')
+              moreUpdates.push((edit: any) => {
+                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
+              })
+            }
+            else {
+              modifiedText = modifiedText.split(';').map((i: string) => {
+                if (!i)
+                  return false
+                i = i.trim()
+                const [key, value] = i.split(':')
+                return `'${key.trim()}': '${value.trim()}'`
+              }).filter(Boolean).join(', ')
+              moreUpdates.push((edit: any) => {
+                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
+              })
+            }
           }
-          else {
-            modifiedText = modifiedText.split(';').map((i: string) => {
-              if (!i)
-                return false
-              i = i.trim()
-              const [key, value] = i.split(':')
-              return `'${key.trim()}': '${value.trim()}'`
-            }).filter(Boolean).join(', ')
-            moreUpdates.push((edit: any) => {
-              edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
-            })
-          }
+
+          break
+        }
+        case 'className': {
           break
         }
         default: {
@@ -205,7 +234,7 @@ export = createExtension(() => {
             })
           }
         }
-        else if (isReact) {
+        else if (isReact || isVueTsx) {
           let content = lineText.slice(prefixEnd + 2, end)
           if (/['"]/.test(lineText[prefixEnd + 1])) {
             if (prefixName === 'style') {
@@ -218,11 +247,12 @@ export = createExtension(() => {
               }).filter(Boolean).join(', ').replace(/"/g, '\'')
             }
             updateText((edit) => {
-              edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${prefixName === 'className'
+              edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${/class(?:Name)?/.test(prefixName)
                 ? `\`${content}\``
                 : prefixName === 'style'
                   ? `{${content}}`
                   : content}}`)
+              moreUpdates.forEach(cb => cb(edit))
             })
           }
           else if (lineText[prefixEnd + 1] === '{') {
@@ -236,11 +266,46 @@ export = createExtension(() => {
             }
             updateText((edit) => {
               edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content.replace(/"/g, '\'')}"`)
+              moreUpdates.forEach(cb => cb(edit))
             })
           }
         }
         else {
           // 🤔
+          let content = lineText.slice(prefixEnd + 2, end)
+          if (/['"]/.test(lineText[prefixEnd + 1])) {
+            if (prefixName === 'style') {
+              content = content.split(';').map((i: string) => {
+                if (!i)
+                  return false
+                i = i.trim()
+                const [key, value] = i.split(':')
+                return `'${camelize(key.trim())}': '${value.trim()}'`
+              }).filter(Boolean).join(', ').replace(/"/g, '\'')
+            }
+            updateText((edit) => {
+              edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `{${/class(?:Name)?/.test(prefixName)
+                ? `\`${content}\``
+                : prefixName === 'style'
+                  ? `{${content}}`
+                  : content}}`)
+              moreUpdates.forEach(cb => cb(edit))
+            })
+          }
+          else if (lineText[prefixEnd + 1] === '{') {
+            if (content[0] === '`' || content[0] === '{')
+              content = content.slice(1, -1)
+            if (prefixName === 'style') {
+              content = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '').split(';').map((item) => {
+                const [key, val] = item.split(':')
+                return `${hyphenate(key)}: ${val}`
+              }).join(';')
+            }
+            updateText((edit) => {
+              edit.replace(createRange(createPosition(selection.line, prefixEnd + 1), createPosition(selection.line, end + 1)), `"${content.replace(/"/g, '\'')}"`)
+              moreUpdates.forEach(cb => cb(edit))
+            })
+          }
         }
       }
       else {
