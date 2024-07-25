@@ -104,7 +104,10 @@ export = createExtension(() => {
           if (isVue) {
             if (lineText[start] === ':') {
               if (content.startsWith('{') && content.endsWith('}'))
-                modifiedText = content.slice(1, -1).replace(/'\s*,/g, ';').replace(/'/g, '')
+                modifiedText = content.slice(1, -1).replace(/\s*,/g, ';').replace(/'/g, '')
+              // 如果有驼峰命名的要转换成 hyphen
+              modifiedText = hyphenate(modifiedText.trim())
+
               moreUpdates.push((edit: any) => {
                 edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
               })
@@ -115,7 +118,8 @@ export = createExtension(() => {
                   return false
                 i = i.trim()
                 const [key, value] = i.split(':')
-                return `'${key.trim()}': '${value.trim()}'`
+                const isNeedQueto = /(?:px|rem|em|vw|vh|%)$/.test(value.trim())
+                return `${camelize(key.trim())}: ${isNeedQueto ? '\'' : ''}${value.trim()}${isNeedQueto ? '\'' : ''}`
               }).filter(Boolean).join(', ')
               moreUpdates.push((edit: any) => {
                 edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
