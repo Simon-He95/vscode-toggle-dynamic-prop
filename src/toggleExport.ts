@@ -9,8 +9,10 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
     })
   }
   else {
-    updateText((edit) => {
-      edit.insert(createPosition(selection.line, 0), 'export ')
-    })
+    if (/^\s*(?:const|let|var|interface|type)/.test(selection.lineText)) {
+      updateText((edit) => {
+        edit.insert(createPosition(selection.line, 0), 'export ')
+      })
+    }
   }
 }
