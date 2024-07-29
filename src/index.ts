@@ -16,7 +16,7 @@ export = createExtension(() => {
     registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
       const language = getActiveTextEditorLanguageId()!
       let isVue = language === 'vue'
-      const isReact = language === 'javascriptreact' || language === 'typescriptreact'
+      const isReact = !isVue && (language === 'javascriptreact' || language === 'typescriptreact')
       const currentFileUrl = getCurrentFileUrl()!
       let isVueTsx = false
       let isVueVine = false
@@ -75,7 +75,7 @@ export = createExtension(() => {
           toggleExport(selection)
           return
         }
-        console.error(`未匹配到正确的结束富符号 ${comma}`)
+        console.error(`未匹配到正确的结束符号 ${comma}`)
         return
       }
       const prefixEnd = start
