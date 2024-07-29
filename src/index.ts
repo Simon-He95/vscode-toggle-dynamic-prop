@@ -118,8 +118,8 @@ export = createExtension(() => {
                   return false
                 i = i.trim()
                 const [key, value] = i.split(':')
-                const isNeedQueto = /(?:px|rem|em|vw|vh|%)$/.test(value.trim())
-                return `${camelize(key.trim())}: ${isNeedQueto ? '\'' : ''}${value.trim()}${isNeedQueto ? '\'' : ''}`
+                const isNeedQuot = /(?:px|rem|em|vw|vh|%)$/.test(value.trim())
+                return `${camelize(key.trim())}: ${isNeedQuot ? '\'' : ''}${value.trim()}${isNeedQuot ? '\'' : ''}`
               }).filter(Boolean).join(', ')
               moreUpdates.push((edit: any) => {
                 edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
