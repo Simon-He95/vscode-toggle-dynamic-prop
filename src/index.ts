@@ -1,5 +1,6 @@
 import { createExtension, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
+import { toggleExport } from './toggleExport'
 
 export = createExtension(() => {
   // 🤔 是否需要支持 `` 跨行 ？
@@ -13,7 +14,7 @@ export = createExtension(() => {
 
   return [
     registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
-      const language = getActiveTextEditorLanguageId()
+      const language = getActiveTextEditorLanguageId()!
       let isVue = language === 'vue'
       const isReact = language === 'javascriptreact' || language === 'typescriptreact'
       const currentFileUrl = getCurrentFileUrl()!
@@ -55,8 +56,13 @@ export = createExtension(() => {
           //
         }
       }
-      if (!comma || !(comma in commaMap))
+      if (!comma || !(comma in commaMap)) {
+        // 支持 导出 和 非导出状态切换
+        if (/typescript|javascript/.test(language)) {
+          toggleExport(selection)
+        }
         return
+      }
       while (end < lineText.length && lineText[end] !== comma) {
         end++
       }
@@ -65,6 +71,10 @@ export = createExtension(() => {
         end++
 
       if (lineText[end] !== comma) {
+        if (/typescript|javascript/.test(language)) {
+          toggleExport(selection)
+          return
+        }
         console.error(`未匹配到正确的结束富符号 ${comma}`)
         return
       }
