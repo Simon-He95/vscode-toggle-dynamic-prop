@@ -14,6 +14,7 @@ module.exports = antfu(
       'no-restricted-syntax': 'off',
       'no-cond-assign': 'off',
       'no-irregular-whitespace': 'off',
+      'style/no-mixed-operators': 'off',
     },
   },
 )

@@ -1,8 +1,11 @@
-import { createExtension, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
+import { createExtension, createLog, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
 import { toggleExport } from './toggleExport'
+import { toggleTsAny } from './toggleTsAny'
 
 export = createExtension(() => {
+  const logger = createLog('vscode-toggle-dynamic-prop')
+  logger.info('vscode-toggle-dynamic-prop is running!')
   // 🤔 是否需要支持 `` 跨行 ？
   const commaMap: any = {
     '{': '}',
@@ -57,7 +60,13 @@ export = createExtension(() => {
       }
       if (!comma || !(comma in commaMap)) {
         // 支持 导出 和 非导出状态切换
-        if (/typescript|javascript/.test(language)) {
+        const hasSelection = selection.selectedTextArray.length
+        if (hasSelection && /typescript/.test(language)) {
+          logger.info('use toggleTsAny')
+          toggleTsAny(selection)
+        }
+        else if (/typescript|javascript/.test(language)) {
+          logger.info('use toggleExport')
           toggleExport(selection)
         }
         return
@@ -70,11 +79,18 @@ export = createExtension(() => {
         end++
 
       if (lineText[end] !== comma) {
-        if (/typescript|javascript/.test(language)) {
-          toggleExport(selection)
+        const hasSelection = selection.selectedTextArray.length
+        if (hasSelection && /typescript/.test(language)) {
+          logger.info('use toggleTsAny')
+          toggleTsAny(selection)
           return
         }
-        console.error(`未匹配到正确的结束符号 ${comma}`)
+        else if (/typescript|javascript/.test(language)) {
+          toggleExport(selection)
+          logger.info('use toggleExport')
+          return
+        }
+        logger.warn(`未匹配到正确的结束符号 ${comma}`)
         return
       }
       const prefixEnd = start
