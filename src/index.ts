@@ -17,7 +17,6 @@ export = createExtension(() => {
       const language = getActiveTextEditorLanguageId()!
       let isVue = language === 'vue'
       const isReact = !isVue && (language === 'javascriptreact' || language === 'typescriptreact')
-      const currentFileUrl = getCurrentFileUrl()!
       let isVueTsx = false
       let isVueVine = false
       let vueRemoteDynamicPrefix = true
@@ -30,7 +29,7 @@ export = createExtension(() => {
         }
       }
       else {
-        isVueVine = currentFileUrl.endsWith('.vine.ts')
+        isVueVine = isVine()!
         if (isVueVine)
           isVue = true
       }
@@ -398,3 +397,8 @@ export = createExtension(() => {
     }),
   ]
 })
+
+function isVine() {
+  const currentFileUrl = getCurrentFileUrl()
+  return currentFileUrl?.endsWith('.vine.ts')
+}
