@@ -7,6 +7,22 @@ Via VSCode MarketPlace: https://marketplace.visualstudio.com/items?itemName=simo
 ## Keybingdings
 - `isMac` ? `cmd+t` : `ctrl+t`
 
+## 在 Vue 中 切换
+- 'xxx' -> `${xxx}`
+- const variable -> export const variable
+- style="background-color:'red'" -> :style="{backgroundColor: red}"
+- class="" -> :class="[]"
+- aa.b -> (aa satisfies any).b  with lang="ts"
+- .forEach(item => {}) -> .forEach((item: any) => {}) with lang="ts"
+
+## 在 Jsx 中 切换
+- 'xxx' -> `${xxx}`
+- const variable -> export const variable
+- style="background-color:'red'" -> style={{ backgroundColor: red }}
+- className="xx" -> className={`xx`}
+- aa.b -> (aa satisfies any).b
+- .forEach(item => {}) -> .forEach((item: any) => {})
+
 ![demo](/assets/demo.gif)
 
 ## :coffee:

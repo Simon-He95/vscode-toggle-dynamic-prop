@@ -1,8 +1,9 @@
-import { createExtension, createLog, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, registerCommand, updateText } from '@vscode-use/utils'
+import { createExtension, createLog, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, insertText, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
 import { toggleExport } from './toggleExport'
 import { toggleTsAny } from './toggleTsAny'
 
+// todo: 替换 updateText 为 insertText
 export = createExtension(() => {
   const logger = createLog('vscode-toggle-dynamic-prop')
   logger.info('vscode-toggle-dynamic-prop is running!')
@@ -16,11 +17,12 @@ export = createExtension(() => {
   }
 
   return [
-    registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', () => {
+    registerCommand('vscode-toggle-dynamic-prop.toggleDynamicProp', async () => {
       const language = getActiveTextEditorLanguageId()!
       let isVue = language === 'vue'
       const isReact = !isVue && (language === 'javascriptreact' || language === 'typescriptreact')
       let isVueTsx = false
+      let isTs = language === 'javascriptreact' || language === 'typescriptreact'
       let isVueVine = false
       let vueRemoteDynamicPrefix = true
       if (isVue) {
@@ -29,6 +31,10 @@ export = createExtension(() => {
         if (/lang=["']tsx["']/.test(code)) {
           isVueTsx = true
           isVue = false
+          isTs = true
+        }
+        else if (/lang=['"]ts['"]/.test(code)) {
+          isTs = true
         }
       }
       else {
@@ -61,7 +67,7 @@ export = createExtension(() => {
       if (!comma || !(comma in commaMap)) {
         // 支持 导出 和 非导出状态切换
         const hasSelection = selection.selectedTextArray.length
-        if (hasSelection && /typescript/.test(language)) {
+        if (hasSelection && isTs) {
           logger.info('use toggleTsAny')
           toggleTsAny(selection)
         }
@@ -108,16 +114,12 @@ export = createExtension(() => {
           if (isVue) {
             if (lineText[start] === ':') {
               if (content.startsWith('[') && content.endsWith(']'))
-                modifiedText = content.slice(1, -1).trim().split(',').map(i => i.trim().replace(/'/g, '')).join(' ')
-              moreUpdates.push((edit: any) => {
-                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
-              })
+                modifiedText = `${content.slice(1, -1).trim().split(',').map(i => i.trim().replace(/'/g, '')).join(' ')}$1`
+              await insertText(modifiedText, createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)))
             }
             else {
               modifiedText = modifiedText.replace(/\s+/g, ' ').split(' ').map(i => `'${i}'`).join(', ')
-              moreUpdates.push((edit: any) => {
-                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `[${modifiedText}]`)
-              })
+              await insertText(`[${modifiedText}$1]`, createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)))
             }
           }
           else if (isVueTsx) {
@@ -131,11 +133,9 @@ export = createExtension(() => {
               if (content.startsWith('{') && content.endsWith('}'))
                 modifiedText = content.slice(1, -1).replace(/\s*,/g, ';').replace(/'/g, '')
               // 如果有驼峰命名的要转换成 hyphen
-              modifiedText = hyphenate(modifiedText.trim())
+              modifiedText = `${hyphenate(modifiedText.trim())}$1`
 
-              moreUpdates.push((edit: any) => {
-                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), modifiedText)
-              })
+              await insertText(modifiedText, createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)))
             }
             else {
               modifiedText = modifiedText.split(';').map((i: string) => {
@@ -146,9 +146,7 @@ export = createExtension(() => {
                 const isNeedQuot = /(?:px|rem|em|vw|vh|%)$/.test(value.trim())
                 return `${camelize(key.trim())}: ${isNeedQuot ? '\'' : ''}${value.trim()}${isNeedQuot ? '\'' : ''}`
               }).filter(Boolean).join(', ')
-              moreUpdates.push((edit: any) => {
-                edit.replace(createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)), `{${modifiedText}}`)
-              })
+              await insertText(`{${modifiedText}$1}`, createRange(createPosition(selection.line, prefixEnd + 2), createPosition(selection.line, end)))
             }
           }
 
