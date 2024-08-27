@@ -1,5 +1,6 @@
 import type { getSelection } from '@vscode-use/utils'
 import { createPosition, createRange, updateText } from '@vscode-use/utils'
+import { toggleOptionalType } from './toggleOptionalType'
 
 export function toggleExport(selection: NonNullable<ReturnType<typeof getSelection>>) {
   const lineText = selection.lineText
@@ -15,6 +16,9 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
       updateText((edit) => {
         edit.insert(createPosition(selection.line, match.index! + match[1].length), 'export ')
       })
+    }
+    else {
+      toggleOptionalType(selection)
     }
   }
 }

@@ -161,13 +161,15 @@ export = createExtension(() => {
               const flag = lineText[prefixEnd + 2] === '`'
               // 如果 content 中只包含 xx_xxx.xx 的形式，认为是字符串拼接，加上 ``, 否则不加
               const isPureVariable = /^\w+(?:\.\w+)*$/.test(content)
-              const { selectedTextArray, line, selection: _selection } = getSelection()!
+              const { selectedTextArray, line, selection: _selection, selectionArray } = getSelection()!
               const selectedText = selectedTextArray[0]
               if (selectedText) {
                 if (lineText[start] === ':') {
                   const dynamicReg = new RegExp(`\\\${\\s*${selectedText}\\s*}`)
+                  const s = selectionArray[0].start.character
+                  const e = selectionArray[0].end.character
                   const dynamicVariableMatch = content.match(dynamicReg)
-                  const isMoreDynamicVariable = /\$\{[^}]+\}/.test(content.replace(dynamicReg, ''))
+                  const isMoreDynamicVariable = /\$\{[^}]+\}/.test(content.slice(0, s) + content.slice(e))
                   const temp = !isMoreDynamicVariable && lineText[prefixEnd + 2] === '`' && lineText[end - 1] === '`'
                   if (!temp) {
                     vueRemoteDynamicPrefix = false

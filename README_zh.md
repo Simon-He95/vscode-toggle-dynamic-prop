@@ -7,6 +7,10 @@ Via VSCode MarketPlace: https://marketplace.visualstudio.com/items?itemName=simo
 ## Keybingdings
 - `isMac` ? `cmd+t` : `ctrl+t`
 
+## Feature
+- 支持在变量或者类型的 export 和 非 export 切换
+- 支持类型中可选值的切换
+
 ## 在 Vue 中 切换
 - 'xxx' -> `${xxx}`
 - const variable -> export const variable

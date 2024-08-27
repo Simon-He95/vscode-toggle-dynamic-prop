@@ -7,6 +7,10 @@ Via VSCode MarketPlace: https://marketplace.visualstudio.com/items?itemName=simo
 ## Keybingdings
 - `isMac` ? `cmd+t` : `ctrl+t`
 
+## Feature
+- Supports switching between export and non-export of variables or types
+- Supports switching of optional values ​​in types
+
 ## In Vue Toggle
 - 'xxx' -> `${xxx}`
 - const variable -> export const variable
