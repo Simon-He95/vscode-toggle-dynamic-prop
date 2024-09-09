@@ -10,10 +10,10 @@ export function toggleImport(selection: NonNullable<ReturnType<typeof getSelecti
   if (import_reg.test(lineText)) {
     const match = lineText.match(import_reg)!
     if (match[3] === '{') {
-      replacer = `const {${match[4]}} = require('${match[4]}')`
+      replacer = `const { ${match[4].trim()} } = require('${match[5]}')`
     }
     else {
-      replacer = `const ${match[4].trim()} = require('${match[4]}')`
+      replacer = `const ${match[4].trim()} = require('${match[5]}')`
     }
     updateText((edit) => {
       edit.replace(createRange(selection.line, match.index! + match[1].length, selection!.line, match.index! + match[1].length + match[2].length), replacer)
@@ -22,8 +22,8 @@ export function toggleImport(selection: NonNullable<ReturnType<typeof getSelecti
   else if (dynamic_require_reg.test(lineText)) {
     const match = lineText.match(dynamic_require_reg)!
     // change to await import
-    if (match[3] === '{') {
-      replacer = `${match[1]} {${match[3]}} = await import('${match[4]}')`
+    if (match[2] === '{') {
+      replacer = `${match[1]} { ${match[3].trim()} } = await import('${match[4]}')`
     }
     else {
       replacer = `${match[1]} ${match[3].trim()} = await import('${match[4]}')`
@@ -35,8 +35,8 @@ export function toggleImport(selection: NonNullable<ReturnType<typeof getSelecti
   else if (dynamic_import_reg.test(lineText)) {
     // change to import from
     const match = lineText.match(dynamic_import_reg)!
-    if (match[3] === '{') {
-      replacer = `import {${match[3]}} from '${match[4]}'`
+    if (match[2] === '{') {
+      replacer = `import { ${match[3].trim()} } from '${match[4]}'`
     }
     else {
       replacer = `import ${match[3].trim()} from '${match[4]}'`

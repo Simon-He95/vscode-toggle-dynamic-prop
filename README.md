@@ -10,6 +10,7 @@ Via VSCode MarketPlace: https://marketplace.visualstudio.com/items?itemName=simo
 ## Feature
 - Supports switching between export and non-export of variables or types
 - Supports switching of optional values ​​in types
+- Toggle with `import`, `require`, `await import`
 
 ## In Vue Toggle
 - 'xxx' -> `${xxx}`

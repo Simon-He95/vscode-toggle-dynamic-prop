@@ -10,6 +10,7 @@ Via VSCode MarketPlace: https://marketplace.visualstudio.com/items?itemName=simo
 ## Feature
 - 支持在变量或者类型的 export 和 非 export 切换
 - 支持类型中可选值的切换
+- 支持在 `import`, `require`, `await import` 之间切换
 
 ## 在 Vue 中 切换
 - 'xxx' -> `${xxx}`
