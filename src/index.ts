@@ -2,6 +2,7 @@ import { createExtension, createLog, createPosition, createRange, getActiveText,
 import { camelize, hyphenate } from 'lazy-js-utils'
 import { toggleExport } from './toggleExport'
 import { toggleTsAny } from './toggleTsAny'
+import { toggleImport } from './toggleImport'
 
 // todo: 替换 updateText 为 insertText
 export = createExtension(() => {
@@ -48,7 +49,10 @@ export = createExtension(() => {
       const lineText = getLineText(selection.line)
       if (!lineText)
         return
-
+      // 如果 lineText 是 import...from 或者  = require(''), 使用 toggleImport
+      if (/require\(|import[(\s]/.test(lineText)) {
+        return toggleImport(selection)
+      }
       let start = selection.character
       let end = selection.character
       while (start > 0 && !/=/.test(lineText[--start])) {
