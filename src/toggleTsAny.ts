@@ -3,22 +3,80 @@ import { createRange, insertText } from '@vscode-use/utils'
 
 export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSelection>>) {
   const { lineText, selectedTextArray, selection } = selectionDetail
-  const start = selection.start.character
+  let start = selection.start.character
   let end = selection.end.character
   const selectionText = selectedTextArray[0].trim()
-  if (!selectionText)
-    return
+  if (!selectionText || lineText[start] === '(' || lineText[start - 1] === '(' || lineText[end] === ')' || lineText[end - 1] === ')') {
+    if (lineText[start] === '(') {
+      let temp = end
+      while ((lineText[temp] !== ')' && lineText[temp] !== '=') && temp < lineText.length - 1) {
+        temp++
+      }
+      end = temp
+    }
+    else if (lineText[start - 1] === '(') {
+      start--
+      let temp = end
+      while ((lineText[temp] !== ')' && lineText[temp] !== '=') && temp < lineText.length - 1) {
+        temp++
+      }
+      end = temp
+    }
+    else if (lineText[end] === ')') {
+      let temp = start
+      while (temp > 0 && lineText[--temp] !== '(') {
+        //
+      }
+      start = temp
+    }
+    else if (lineText[end - 1] === ')') {
+      let temp = start
+      while (temp > 0 && lineText[--temp] !== '(') {
+        //
+      }
+      start = temp
+    }
+    else {
+      return
+    }
+
+    const content = lineText.slice(start, end + 1)
+    if (lineText[end] === ')')
+      end++
+    if (/^\([^\s)]+\s+=$/.test(content)) {
+      end = end - 1
+      start++
+    }
+    else if (/\(?\([^:\s)]+:\s[^)]+\)/.test(content)) {
+      //
+    }
+    else if (!/^\([^\s)]+\s+(?:as|satisfies)\s[^)]+\)$/.test(content)) {
+      return
+    }
+  }
   // 如果选中内容后面根着 as any
   // 如果选中内容前面有 (
   if (lineText[start] === '(' && lineText[end - 1] === ')') {
     let content = lineText.slice(start + 1, end - 1).trim()
     if (/ as|satisfies /.test(content)) {
       content = content.split(' ')[0]
-      insertText(`\${${content}}`, createRange(selection.start.line, start, selection.end.line, end))
+      if (content.startsWith('(')) {
+        content = `(\${1:${content.slice(1)}}`
+      }
+      else {
+        content = `\${1:${content}}`
+      }
+      insertText(content, createRange(selection.start.line, start, selection.end.line, end))
     }
     else if (/: /.test(content)) {
       content = content.split(':')[0]
-      insertText(`\${${content}}`, createRange(selection.start.line, start, selection.end.line, end))
+      if (content.startsWith('(')) {
+        content = `(\${1:${content.slice(1)}}`
+      }
+      else {
+        content = `\${1:${content}}`
+      }
+      insertText(content, createRange(selection.start.line, start, selection.end.line, end))
     }
   }
   else if (lineText[end] === '.') {
@@ -30,7 +88,7 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
       //
     }
     if (lineText[end] === '=' && lineText[end + 1] === '>') {
-      insertText(`(${selectionText}: \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, selection.end.character))
+      insertText(`(${selectionText || lineText.slice(start, end - 1).trim()}: \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end - 1))
     }
     else if ((lineText[start - 1] === '(') && (lineText.slice(end, end + 'as'.length) === 'as') || (lineText.slice(end, end + 'satisfies'.length) === 'satisfies')) {
       const offset = lineText.slice(end).indexOf(')') + 1
