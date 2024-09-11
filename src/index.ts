@@ -55,7 +55,7 @@ export = createExtension(() => {
       }
       let start = selection.character
       let end = selection.character
-      while (start > 0 && !/=/.test(lineText[--start])) {
+      while (start >= 0 && !/=/.test(lineText[--start])) {
         //
       }
 
@@ -103,13 +103,16 @@ export = createExtension(() => {
         logger.warn(`未匹配到正确的结束符号 ${comma}`)
         return
       }
-      const prefixEnd = start
+      const prefixEnd = Math.max(start, 0)
       while (start > 0 && !/['"=\s@!~:]/.test(lineText[--start])) {
         //
       }
 
       const prefixStart = start
       const prefixName = lineText.slice(prefixStart + 1, prefixEnd)
+      if (['v-if', 'v-else-if', 'v-else'].includes(prefixName) || lineText[prefixStart] === '@') {
+        return
+      }
       const moreUpdates: ((edit: any) => void)[] = []
       const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
       let modifiedText = content
