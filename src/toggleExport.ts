@@ -11,7 +11,7 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
     })
   }
   else {
-    const match = lineText.match(/^(\s*)(?:const|let|var|interface|type)/)
+    const match = lineText.match(/^(\s*)(?:const|let|var|interface|type|function)/)
     if (match) {
       updateText((edit) => {
         edit.insert(createPosition(selection.line, match.index! + match[1].length), 'export ')
