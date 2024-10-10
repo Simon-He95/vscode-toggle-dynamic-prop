@@ -23,7 +23,7 @@ export = createExtension(() => {
       let isVue = language === 'vue'
       const isReact = !isVue && (language === 'javascriptreact' || language === 'typescriptreact')
       let isVueTsx = false
-      let isTs = language === 'javascriptreact' || language === 'typescriptreact'
+      let isTs = language === 'typescriptreact' || language === 'typescript'
       let isVueVine = false
       let vueRemoteDynamicPrefix = true
       if (isVue) {
