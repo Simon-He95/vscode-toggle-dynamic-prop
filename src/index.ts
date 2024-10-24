@@ -55,8 +55,13 @@ export = createExtension(() => {
       }
       let start = selection.character
       let end = selection.character
+      let option
+
       while (start >= 0 && !/=/.test(lineText[--start])) {
         //
+        if (lineText[start] in commaMap) {
+          option = [commaMap[lineText[start]], start]
+        }
       }
 
       let comma = commaMap[lineText[start + 1]]
@@ -73,13 +78,19 @@ export = createExtension(() => {
         const hasSelection = selection.selectedTextArray.length
         if (hasSelection && isTs) {
           logger.info('use toggleTsAny')
-          toggleTsAny(selection)
+          return toggleTsAny(selection)
         }
         else if (/typescript|javascript/.test(language)) {
           logger.info('use toggleExport')
-          toggleExport(selection)
+          return toggleExport(selection)
         }
-        return
+        if (option) {
+          comma = option[0]
+          start = option[1] - 1
+        }
+        else {
+          return
+        }
       }
       while (end < lineText.length && lineText[end] !== comma) {
         end++
@@ -109,13 +120,15 @@ export = createExtension(() => {
       }
 
       const prefixStart = start
-      const prefixName = lineText.slice(prefixStart + 1, prefixEnd)
+      let prefixName = lineText.slice(prefixStart + 1, prefixEnd)
       if (['v-if', 'v-else-if', 'v-else'].includes(prefixName) || lineText[prefixStart] === '@') {
         return
       }
       const moreUpdates: ((edit: any) => void)[] = []
       const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
       let modifiedText = content
+      if (option)
+        prefixName = ''
       switch (prefixName) {
         case 'class': {
           if (isVue) {
@@ -349,7 +362,7 @@ export = createExtension(() => {
         // 如果有 selection
         const { selectedTextArray, line, selection } = getSelection()!
         const selectedText = selectedTextArray[0]
-        if (!(lineText[start + 1] in commaMap)) {
+        while (!(lineText[start + 1] in commaMap)) {
           start++
         }
 
