@@ -127,7 +127,7 @@ export = createExtension(() => {
       const moreUpdates: ((edit: any) => void)[] = []
       const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
       let modifiedText = content
-      if (option)
+      if (isUsedStart && option)
         prefixName = ''
       switch (prefixName) {
         case 'class': {
