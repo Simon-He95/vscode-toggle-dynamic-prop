@@ -59,7 +59,7 @@ export = createExtension(() => {
 
       while (start >= 0 && !/=/.test(lineText[--start])) {
         //
-        if (lineText[start] in commaMap) {
+        if (['\'', '"', '`'].includes(lineText[start]) && !option) {
           option = [commaMap[lineText[start]], start]
         }
       }
@@ -76,13 +76,13 @@ export = createExtension(() => {
       if (!comma || !(comma in commaMap)) {
         // 支持 导出 和 非导出状态切换
         const hasSelection = selection.selectedTextArray.length
-        if (hasSelection && isTs) {
+        if (hasSelection && isTs && toggleTsAny(selection)) {
           logger.info('use toggleTsAny')
-          return toggleTsAny(selection)
+          return
         }
-        else if (/typescript|javascript/.test(language)) {
+        else if (/typescript|javascript/.test(language) && toggleExport(selection)) {
           logger.info('use toggleExport')
-          return toggleExport(selection)
+          return
         }
         if (option) {
           comma = option[0]
@@ -127,8 +127,10 @@ export = createExtension(() => {
       const moreUpdates: ((edit: any) => void)[] = []
       const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
       let modifiedText = content
-      if (isUsedStart && option)
+      if (isUsedStart && option) {
         prefixName = ''
+        start = option[1] - 1
+      }
       switch (prefixName) {
         case 'class': {
           if (isVue) {

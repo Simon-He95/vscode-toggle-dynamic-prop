@@ -9,6 +9,7 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
     updateText((edit) => {
       edit.delete(createRange(selection.line, match.index! + match[1].length, selection!.line, match.index! + match[1].length + match[2].length))
     })
+    return true
   }
   else {
     const match = lineText.match(/^(\s*)(?:const|let|var|interface|type|function|async\s+function)/)
@@ -16,9 +17,10 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
       updateText((edit) => {
         edit.insert(createPosition(selection.line, match.index! + match[1].length), 'export ')
       })
+      return true
     }
     else {
-      toggleOptionalType(selection)
+      return toggleOptionalType(selection)
     }
   }
 }

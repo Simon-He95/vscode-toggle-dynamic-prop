@@ -81,6 +81,7 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
   }
   else if (lineText[end] === '.') {
     insertText(`(${selectionText} satisfies \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end))
+    return true
   }
   else if (lineText[end] === ' ') {
     const maxLen = lineText.length - 1
@@ -89,14 +90,17 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
     }
     if (lineText[end] === '=' && lineText[end + 1] === '>') {
       insertText(`(${selectionText || lineText.slice(start, end - 1).trim()}: \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end - 1))
+      return true
     }
     else if ((lineText[start - 1] === '(') && (lineText.slice(end, end + 'as'.length) === 'as') || (lineText.slice(end, end + 'satisfies'.length) === 'satisfies')) {
       const offset = lineText.slice(end).indexOf(')') + 1
       insertText(`\${1:${selectionText}}`, createRange(selection.start.line, start - 1, selection.end.line, end + offset))
+      return true
     }
   }
   else if (lineText[end] === ':' && lineText[start - 1] === '(') {
     const offset = lineText.slice(end).indexOf(')') + 1
     insertText(`\${1:${selectionText}}`, createRange(selection.start.line, start - 1, selection.end.line, end + offset))
+    return true
   }
 }
