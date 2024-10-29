@@ -417,10 +417,10 @@ export = createExtension(() => {
         else {
           if (comma === '`') {
             updateText((edit) => {
-              edit.replace(createRange([line, start + 1], [line, start + 2]), '\'')
               edit.replace(createRange([line, end], [line, end + 1]), '\'')
+              edit.replace(createRange([line, start + 1], [line, start + 2]), '\'')
               for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
-                edit.replace(createRange([line, start + 2 + match.index], [line, start + 2 + match.index + match[0].length]), match[1].trim())
+                edit.replace(createRange([line, start + 1 + match.index], [line, start + 1 + match.index + match[0].length]), match[1].trim())
               }
             })
           }
