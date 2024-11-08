@@ -57,7 +57,7 @@ export = createExtension(() => {
       let end = selection.character
       let option
 
-      while (start >= 0 && !/=/.test(lineText[--start])) {
+      while (start >= 0 && (!/=/.test(lineText[--start]) || (lineText[start] === '=' && !/[{"'`]/.test(lineText[start + 1])))) {
         //
         if (['\'', '"', '`'].includes(lineText[start]) && !option) {
           option = [commaMap[lineText[start]], start]
