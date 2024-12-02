@@ -1,6 +1,6 @@
 import type { getSelection } from '@vscode-use/utils'
-import { createRange, updateText } from '@vscode-use/utils'
 import type { Range } from 'vscode'
+import { createRange, updateText } from '@vscode-use/utils'
 
 export function toggleOptionalType(selection: NonNullable<ReturnType<typeof getSelection>>) {
   const updateLists = selection.selectionArray.map((item) => {

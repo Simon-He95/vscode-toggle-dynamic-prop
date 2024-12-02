@@ -1,8 +1,8 @@
 import { createExtension, createLog, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, insertText, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
 import { toggleExport } from './toggleExport'
-import { toggleTsAny } from './toggleTsAny'
 import { toggleImport } from './toggleImport'
+import { toggleTsAny } from './toggleTsAny'
 
 // todo: 替换 updateText 为 insertText
 export = createExtension(() => {
@@ -115,8 +115,11 @@ export = createExtension(() => {
         return
       }
       const prefixEnd = Math.max(start, 0)
-      while (start > 0 && !/['"=\s@!~:]/.test(lineText[--start])) {
+      while (start > 0 && !/['"=\s@!~]/.test(lineText[--start])) {
         //
+      }
+      if (lineText[start + 1] === ':') {
+        start++
       }
 
       const prefixStart = start
@@ -183,10 +186,10 @@ export = createExtension(() => {
               const flag = lineText[prefixEnd + 2] === '`'
               // 如果 content 中只包含 xx_xxx.xx 的形式，认为是字符串拼接，加上 ``, 否则不加
               const isPureVariable = /^\w+(?:\.\w+)*$/.test(content)
-              const { selectedTextArray, line, selection: _selection, selectionArray } = getSelection()!
-              const selectedText = selectedTextArray[0]
+              let { selectedTextArray, line, selection: _selection, selectionArray } = getSelection()!
+              let selectedText = selectedTextArray[0]
               if (selectedText) {
-                if (lineText[start] === ':') {
+                if (lineText[start] === ':' || prefixName.startsWith('v-model')) {
                   const dynamicReg = new RegExp(`\\\${\\s*${selectedText}\\s*}`)
                   const s = selectionArray[0].start.character
                   const e = selectionArray[0].end.character
@@ -195,6 +198,16 @@ export = createExtension(() => {
                   const temp = !isMoreDynamicVariable && lineText[prefixEnd + 2] === '`' && lineText[end - 1] === '`'
                   if (!temp) {
                     vueRemoteDynamicPrefix = false
+                  }
+                  if (selectedText.startsWith('${') && selectedText.endsWith('}`')) {
+                    _selection = {
+                      start: _selection.start,
+                      end: {
+                        ..._selection.end,
+                        character: _selection.end.character - 1,
+                      },
+                    } as any
+                    selectedText = selectedText.slice(0, -1)
                   }
                   if (selectedText.startsWith('${') && selectedText.endsWith('}')) {
                     // 删除 ${}
@@ -240,12 +253,13 @@ export = createExtension(() => {
                   moreUpdates.push((edit) => {
                     edit.insert(createPosition(selection.line, prefixEnd + 2), '`')
                     edit.insert(createPosition(selection.line, end), '`')
-                    edit.replace(createRange([_selection.start.line, _selection.start.character], [_selection.end.line, _selection.end.character]), `\${${selectedText}}`)
+                    const range = createRange([_selection.start.line, _selection.start.character], [_selection.end.line, _selection.end.character])
+                    edit.replace(range, `\${${selectedText}}`)
                   })
                 }
               }
               else {
-                if (lineText[start] === ':') {
+                if (lineText[start] === ':' || prefixName.startsWith('v-model')) {
                   if (!flag)
                     break
 
@@ -280,7 +294,8 @@ export = createExtension(() => {
           }
           else {
             updateText((edit) => {
-              edit.insert(createPosition(selection.line, start + 1), ':')
+              if (!prefixName.startsWith('v-model'))
+                edit.insert(createPosition(selection.line, start + 1), ':')
               moreUpdates.forEach(cb => cb(edit))
             })
           }
