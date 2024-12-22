@@ -1,5 +1,7 @@
 import { createExtension, createLog, createPosition, createRange, getActiveText, getActiveTextEditorLanguageId, getCurrentFileUrl, getLineText, getSelection, insertText, registerCommand, updateText } from '@vscode-use/utils'
 import { camelize, hyphenate } from 'lazy-js-utils'
+import { toggleArrowAsync } from './toggleArrowAsync'
+import { toggleAsync } from './toggleAsync'
 import { toggleExport } from './toggleExport'
 import { toggleImport } from './toggleImport'
 import { toggleTsAny } from './toggleTsAny'
@@ -86,6 +88,16 @@ export = createExtension(() => {
       if (option) {
         comma = option[0]
         start = option[1] - 1
+      }
+      else if (/\s*(?:async\s+)?(?:function\s+)?\w+\s*\([^)=]*\)\s*\{/.test(lineText) && !selection.selectedTextArray.filter(Boolean).length) {
+        toggleAsync(selection)
+        logger.info('use toggleAsync')
+        return
+      }
+      else if (/\s*\w+(?::|\s*=)\s*(?:async\s+)?\([^)=]*\)\s+=>/.test(lineText) && !selection.selectedTextArray.filter(Boolean).length) {
+        toggleArrowAsync(selection)
+        logger.info('use toggleArrowAsync')
+        return
       }
       else {
         return
