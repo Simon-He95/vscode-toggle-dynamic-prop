@@ -76,25 +76,26 @@ export = createExtension(() => {
     }
     if (!comma || !(comma in commaMap)) {
       // 支持 导出 和 非导出状态切换
-      const hasSelection = selection.selectedTextArray.length
+      const hasSelection = (selection.selectedTextArray).filter(Boolean).length
       if (hasSelection && isTs && toggleTsAny(selection)) {
         logger.info('use toggleTsAny')
         return
       }
-      else if (/typescript|javascript/.test(language) && toggleExport(selection)) {
+      else if (/typescript|javascript/.test(language) && hasSelection && toggleExport(selection)) {
         logger.info('use toggleExport')
         return
       }
+
       if (option) {
         comma = option[0]
         start = option[1] - 1
       }
-      else if (/\s*(?:async\s+)?(?:function\s+)?\w+\s*\([^)=]*\)\s*\{/.test(lineText) && !selection.selectedTextArray.filter(Boolean).length) {
+      else if (/(?:export|export default)?\s*(?:async\s+)?(?:function\s+)?[\w<>]+\s*\([^)]*\)\s*\{/.test(lineText) && !hasSelection) {
         toggleAsync(selection)
         logger.info('use toggleAsync')
         return
       }
-      else if (/\s*\w+(?::|\s*=)\s*(?:async\s+)?\([^)=]*\)\s+=>/.test(lineText) && !selection.selectedTextArray.filter(Boolean).length) {
+      else if (/(?:export|export default)?\s*[\w<>]+(?::|\s*=)\s*(?:async\s+)?\([^)]*\)\s+=>/.test(lineText) && !hasSelection) {
         toggleArrowAsync(selection)
         logger.info('use toggleArrowAsync')
         return
