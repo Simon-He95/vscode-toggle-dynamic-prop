@@ -47,6 +47,9 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
       end = end - 1
       start++
     }
+    else if (content === `(${selectionText})`) {
+      //
+    }
     else if (/\(?\([^:\s)]+:\s[^)]+\)/.test(content)) {
       //
     }
@@ -76,7 +79,15 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
       else {
         content = `\${1:${content}}`
       }
+      if (lineText.slice(end + 1, end + 3) !== '=>') {
+        start++
+        end--
+      }
       insertText(content, createRange(selection.start.line, start, selection.end.line, end))
+    }
+    else if (content === selectionText) {
+      insertText(`(${selectionText}: \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end))
+      return true
     }
   }
   else if (lineText[end] === '.') {
