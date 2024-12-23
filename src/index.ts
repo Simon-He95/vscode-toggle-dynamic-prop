@@ -66,6 +66,9 @@ export = createExtension(() => {
     }
 
     let comma = commaMap[lineText[start + 1]]
+    if (option?.[0]) {
+      comma = option
+    }
     // 如果没有 comma，可能不是在属性中使用，找到 空格 之后的第一个 特殊字符
     let isUsedStart = false
     if (!comma) {
@@ -142,7 +145,7 @@ export = createExtension(() => {
     const moreUpdates: ((edit: any) => void)[] = []
     const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
     let modifiedText = content
-    if (isUsedStart && option) {
+    if ((isUsedStart || prefixName.endsWith(':') || /[?,]/.test(prefixName)) && option) {
       prefixName = ''
       start = option[1] - 1
     }
@@ -278,6 +281,13 @@ export = createExtension(() => {
                 moreUpdates.push((edit) => {
                   edit.replace(createRange([selection.line, prefixEnd + 2], [selection.line, prefixEnd + 3]), '')
                   edit.replace(createRange([selection.line, end - 1], [selection.line, end]), '')
+                  for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
+                    edit.replace(createRange([line, prefixEnd + 2 + match.index], [line, prefixEnd + 2 + match.index + match[0].length]), match[1].trim())
+                  }
+                })
+              }
+              else if (prefixName.endsWith(':') && comma === '`') {
+                moreUpdates.push((edit) => {
                   for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
                     edit.replace(createRange([line, prefixEnd + 2 + match.index], [line, prefixEnd + 2 + match.index + match[0].length]), match[1].trim())
                   }
@@ -447,7 +457,7 @@ export = createExtension(() => {
             edit.replace(createRange([line, end], [line, end + 1]), '\'')
             edit.replace(createRange([line, start + 1], [line, start + 2]), '\'')
             for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
-              edit.replace(createRange([line, start + 1 + match.index], [line, start + 1 + match.index + match[0].length]), match[1].trim())
+              edit.replace(createRange([line, start + 1 + match.index], [line, start + 1 + match.index + match[0].length + 1]), match[1].trim())
             }
           })
         }
