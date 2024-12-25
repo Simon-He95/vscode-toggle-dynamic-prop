@@ -65,11 +65,11 @@
     "release": "bumpp && pnpm run publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.12.0",
+    "@antfu/eslint-config": "^3.12.1",
     "@types/node": "^18.19.68",
     "@types/vscode": "1.84.2",
     "@vscode-use/utils": "0.1.39",
-    "bumpp": "^9.9.1",
+    "bumpp": "^9.9.2",
     "eslint": "^9.17.0",
     "esno": "^0.16.3",
     "lazy-js-utils": "^0.1.27",
