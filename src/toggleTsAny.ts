@@ -72,18 +72,38 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
       insertText(content, createRange(selection.start.line, start, selection.end.line, end))
     }
     else if (/: /.test(content)) {
-      content = content.split(':')[0]
-      if (content.startsWith('(')) {
-        content = `(\${1:${content.slice(1)}}`
+      if (content.includes(',')) {
+        if (lineText[selection.end.character] === ':') {
+          return true
+        }
+        else {
+          let start = selection.start.character
+          while (!lineText[start--] && start > 0) {
+            //
+          }
+          if (lineText[start - 1] === ':')
+            return true
+          content = `${selectionText}: \${1:any}$2`
+          insertText(content, createRange(selection.start, selection.end))
+          return true
+        }
       }
       else {
-        content = `\${1:${content}}`
+        content = content.split(':')[0]
+        if (content.startsWith('(')) {
+          content = `(\${1:${content.slice(1)}}`
+        }
+        else {
+          content = `\${1:${content}}`
+        }
+
+        if (lineText.slice(end + 1, end + 3) !== '=>') {
+          start++
+          end--
+        }
+        insertText(content, createRange(selection.start.line, start, selection.end.line, end))
+        return true
       }
-      if (lineText.slice(end + 1, end + 3) !== '=>') {
-        start++
-        end--
-      }
-      insertText(content, createRange(selection.start.line, start, selection.end.line, end))
     }
     else if (content === selectionText) {
       insertText(`(${selectionText}: \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end))
