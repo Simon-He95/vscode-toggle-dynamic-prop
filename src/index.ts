@@ -117,15 +117,48 @@ export = createExtension(() => {
       end++
 
     if (lineText[end] !== comma) {
-      const hasSelection = selection.selectedTextArray.length
+      const hasSelection = (selection.selectedTextArray).filter(Boolean).length
       if (hasSelection && /typescript/.test(language)) {
         logger.info('use toggleTsAny')
         toggleTsAny(selection)
         return
       }
-      else if (/typescript|javascript/.test(language)) {
-        toggleExport(selection)
+      else if (/typescript|javascript/.test(language) && toggleExport(selection)) {
         logger.info('use toggleExport')
+        return
+      }
+      else if (isInBrackets(lineText, selection.character)) {
+        // , () => {} 的情况, 在 ( 前加 async
+        let i = selection.character
+        while (i > 0 && /[()]/.test(lineText[--i])) {
+          //
+        }
+        // 判断前面有没有 async
+        let temp = ''
+        let flag = false
+        let j = i
+        while (j > 0) {
+          const cur = lineText[--j]
+          if (/\w/.test(cur)) {
+            flag = true
+            temp = `${cur}${temp}`
+          }
+          else if (flag) {
+            break
+          }
+        }
+        if (temp.includes('async')) {
+          updateText((edit) => {
+            const start = j + temp.indexOf('async') + 1
+            let end = start + 'async'.length
+            if (lineText[end] === ' ')
+              end++
+            edit.delete(createRange([selection.line, start], [selection.line, end]))
+          })
+        }
+        else {
+          insertText('async ', createPosition(selection.line, i + 1))
+        }
         return
       }
       logger.warn(`未匹配到正确的结束符号 ${comma}`)
@@ -477,4 +510,11 @@ export = createExtension(() => {
 function isVine() {
   const currentFileUrl = getCurrentFileUrl()
   return currentFileUrl?.endsWith('.vine.ts')
+}
+
+function isInBrackets(lineText: string, character: number) {
+  while (character > 0 && /[()]/.test(lineText[--character])) {
+    //
+  }
+  return lineText[character + 1] === '('
 }
