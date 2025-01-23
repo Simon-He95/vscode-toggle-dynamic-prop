@@ -56,15 +56,14 @@ export = createExtension(() => {
     }
     let start = selection.character
     let end = selection.character
-    let option
+    const options: [string, number][] = []
 
     while (start >= 0 && (!/=/.test(lineText[--start]) || (lineText[start] === '=' && !/[{"'`]/.test(lineText[start + 1])))) {
-      //
-      if (['\'', '"', '`'].includes(lineText[start]) && !option) {
-        option = [commaMap[lineText[start]], start]
+      if (['\'', '"', '`'].includes(lineText[start])) {
+        options.push([commaMap[lineText[start]], start])
       }
     }
-
+    const option = options[0]
     let comma = commaMap[lineText[start + 1]]
     // 如果没有 comma，可能不是在属性中使用，找到 空格 之后的第一个 特殊字符
     let isUsedStart = false
@@ -73,6 +72,9 @@ export = createExtension(() => {
       while (start < selection.character && (comma = lineText[++start]) === ' ') {
         //
       }
+    }
+    else if (options.length > 1) {
+      comma = option[0]
     }
     if ((!comma || !(comma in commaMap))) {
       if (option) {
@@ -180,10 +182,11 @@ export = createExtension(() => {
     const moreUpdates: ((edit: any) => void)[] = []
     const content = lineText.slice(prefixEnd + (isUsedStart ? 1 : 2), end)
     let modifiedText = content
-    if ((isUsedStart || prefixName.endsWith(':') || /[?,]/.test(prefixName)) && option) {
+    if ((isUsedStart || prefixName.endsWith(':') || options.length > 1 || /[?,]/.test(prefixName)) && option) {
       prefixName = ''
       start = option[1] - 1
     }
+
     switch (prefixName) {
       case 'class': {
         if (isVue) {

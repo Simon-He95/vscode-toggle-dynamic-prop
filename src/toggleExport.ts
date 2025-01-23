@@ -6,9 +6,17 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
   const lineText = selection.lineText
   const match = lineText.match(/^(\s*)(export(?:\s*default)?\s*)/)
   if (match) {
-    updateText((edit) => {
-      edit.delete(createRange(selection.line, match.index! + match[1].length, selection!.line, match.index! + match[1].length + match[2].length))
-    })
+    if (match[2].includes('default')) {
+      updateText((edit) => {
+        edit.delete(createRange(selection.line, match.index! + match[1].length, selection!.line, match.index! + match[1].length + match[2].length))
+      })
+    }
+    else {
+      updateText((edit) => {
+        edit.insert(createPosition(selection.line, match.index! + match[0].length), 'default ')
+      })
+    }
+
     return true
   }
   else {
