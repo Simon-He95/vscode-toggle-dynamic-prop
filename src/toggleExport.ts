@@ -4,7 +4,7 @@ import { toggleOptionalType } from './toggleOptionalType'
 
 export function toggleExport(selection: NonNullable<ReturnType<typeof getSelection>>) {
   const lineText = selection.lineText
-  const match = lineText.match(/^(\s*)(export(?:\s*default)?\s*)/)
+  const match = lineText.match(/^(\s*)(export(?:\s*default)?\s*)\w/)
   if (match) {
     if (match[2].includes('default')) {
       updateText((edit) => {
@@ -13,7 +13,7 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
     }
     else {
       updateText((edit) => {
-        edit.insert(createPosition(selection.line, match.index! + match[0].length), 'default ')
+        edit.insert(createPosition(selection.line, match.index! + match[2].length), 'default ')
       })
     }
 

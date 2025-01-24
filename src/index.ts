@@ -101,9 +101,13 @@ export = createExtension(() => {
           logger.info('use toggleAsync')
           return
         }
-        else if (/(?:export|export default)?\s*[\w<>]+(?::|\s*=)\s*(?:async\s+)?\([^)]*\)\s+=>/.test(lineText) && !hasSelection) {
+        else if (/(?:export|export default)?\s*[\w<>]+(?::|\s*=)?\s*(?:async\s+)?\([^)]*\)\s+=>/.test(lineText) && !hasSelection) {
           toggleArrowAsync(selection)
           logger.info('use toggleArrowAsync')
+          return
+        }
+        else if (/typescript|javascript/.test(language) && toggleExport(selection)) {
+          logger.info('use toggleExport')
           return
         }
         else {
