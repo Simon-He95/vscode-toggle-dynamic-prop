@@ -13,7 +13,7 @@ export function toggleExport(selection: NonNullable<ReturnType<typeof getSelecti
     }
     else {
       updateText((edit) => {
-        edit.insert(createPosition(selection.line, match.index! + match[2].length), 'default ')
+        edit.insert(createPosition(selection.line, match.index! + match[1].length + match[2].length), 'default ')
       })
     }
 
