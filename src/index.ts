@@ -87,7 +87,7 @@ export = createExtension(() => {
           logger.info('use toggleTsAny')
           return
         }
-        else if (/typescript|javascript/.test(language) && hasSelection && toggleExport(selection)) {
+        else if (hasSelection && /typescript|javascript/.test(language) && toggleExport(selection)) {
           logger.info('use toggleExport')
           return
         }
@@ -120,12 +120,11 @@ export = createExtension(() => {
 
     if (lineText[end] !== comma) {
       const hasSelection = (selection.selectedTextArray).filter(Boolean).length
-      if (hasSelection && /typescript/.test(language)) {
+      if (hasSelection && /typescript/.test(language) && toggleTsAny(selection)) {
         logger.info('use toggleTsAny')
-        toggleTsAny(selection)
         return
       }
-      else if (/typescript|javascript/.test(language) && toggleExport(selection)) {
+      else if (hasSelection && /typescript|javascript/.test(language) && toggleExport(selection)) {
         logger.info('use toggleExport')
         return
       }
