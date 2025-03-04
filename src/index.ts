@@ -56,10 +56,25 @@ export = createExtension(() => {
     let start = selection.character
     let end = selection.character
     const options: [string, number][] = []
-
+    const functionOptions: [string, number][] = []
+    let skip = false
     while (start >= 0 && (!/=/.test(lineText[--start]) || (lineText[start] === '=' && !/[{"'`]/.test(lineText[start + 1])))) {
-      if (['\'', '"', '`'].includes(lineText[start])) {
+      if (!skip && ['\'', '"', '`'].includes(lineText[start])) {
         options.push([commaMap[lineText[start]], start])
+      }
+      else if (lineText[start] === ')') {
+        skip = true
+        functionOptions.push([lineText[start], start])
+      }
+      else if (lineText[start] === '(') {
+        functionOptions.push([lineText[start], start])
+        skip = false
+      }
+      else if (lineText[start] === ']') {
+        skip = true
+      }
+      else if (skip && lineText[start] === '[') {
+        skip = false
       }
     }
     const option = options[0]
@@ -76,7 +91,23 @@ export = createExtension(() => {
       comma = option[0]
     }
     if ((!comma || !(comma in commaMap))) {
-      if (option) {
+      const filterIndexes: number[] = []
+      for (let i = functionOptions.length - 1; i > 0; i--) {
+        const [text] = functionOptions[i]
+        if (text === ')') {
+          const beforeIndex = functionOptions.slice(0, i).findIndex(([_text]) => _text === '(')
+          if (beforeIndex !== -1) {
+            filterIndexes.push(i, beforeIndex)
+          }
+        }
+      }
+      const processFunctionOptions = functionOptions.filter((_, index) => !filterIndexes.includes(index))[0]
+
+      if (processFunctionOptions) {
+        // 去除成对的 ()
+        comma = processFunctionOptions[0]
+      }
+      else if (option) {
         comma = option[0]
       }
       else {
@@ -91,7 +122,11 @@ export = createExtension(() => {
           return
         }
 
-        if (option) {
+        if (processFunctionOptions.length) {
+          comma = processFunctionOptions[0]
+          start = processFunctionOptions[1] - 1
+        }
+        else if (option) {
           comma = option[0]
           start = option[1] - 1
         }
@@ -134,7 +169,7 @@ export = createExtension(() => {
       else if (isInBrackets(lineText, selection.character)) {
         // , () => {} 的情况, 在 ( 前加 async
         let i = selection.character
-        while (i > 0 && /[()]/.test(lineText[--i])) {
+        while (i > 0 && !/[()]/.test(lineText[--i])) {
           //
         }
         // 判断前面有没有 async
@@ -150,6 +185,9 @@ export = createExtension(() => {
           else if (flag) {
             break
           }
+          else if (/[,()![\]]/.test(cur)) {
+            break
+          }
         }
         if (temp.includes('async')) {
           updateText((edit) => {
@@ -161,7 +199,7 @@ export = createExtension(() => {
           })
         }
         else {
-          insertText('async ', createPosition(selection.line, i + 1))
+          insertText('async ', createPosition(selection.line, flag ? i + 1 : i))
         }
         return
       }
@@ -596,7 +634,7 @@ export = createExtension(() => {
             }
           })
         }
-        else {
+        else if (comma !== '(') {
           updateText((edit) => {
             edit.replace(createRange([line, start + 1], [line, start + 2]), '`')
             edit.replace(createRange([line, end], [line, end + 1]), '`')
@@ -613,8 +651,8 @@ function isVine() {
 }
 
 function isInBrackets(lineText: string, character: number) {
-  while (character > 0 && /[()]/.test(lineText[--character])) {
+  while (character > 0 && !/[()]/.test(lineText[--character])) {
     //
   }
-  return lineText[character + 1] === '('
+  return lineText[character] === '('
 }
