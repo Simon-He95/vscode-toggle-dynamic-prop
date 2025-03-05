@@ -149,7 +149,7 @@ export = createExtension(() => {
         }
       }
     }
-    while (end < lineText.length && lineText[end] !== comma) {
+    while (end < lineText.length && lineText[end] !== comma && !/[=]/.test(lineText[end])) {
       end++
     }
     // tsx 会存在 {{}}
@@ -574,7 +574,7 @@ export = createExtension(() => {
       // 如果有 selection
       const { selectedTextArray, line, selection } = getSelection()!
       const selectedText = selectedTextArray[0]
-      while (!(lineText[start + 1] in commaMap)) {
+      while (!(lineText[start + 1] in commaMap) && start < lineText.length) {
         start++
       }
 
