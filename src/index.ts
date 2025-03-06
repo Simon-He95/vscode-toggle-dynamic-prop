@@ -122,7 +122,7 @@ export = createExtension(() => {
           return
         }
 
-        if (processFunctionOptions.length) {
+        if (processFunctionOptions) {
           comma = processFunctionOptions[0]
           start = processFunctionOptions[1] - 1
         }
