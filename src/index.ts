@@ -185,7 +185,7 @@ export = createExtension(() => {
           else if (flag) {
             break
           }
-          else if (/[,()![\]]/.test(cur)) {
+          else if (/[,()![\]=]/.test(cur)) {
             break
           }
         }
