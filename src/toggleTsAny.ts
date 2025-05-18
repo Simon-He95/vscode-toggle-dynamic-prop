@@ -111,7 +111,7 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
     }
   }
   else if (lineText[end] === '.') {
-    insertText(`(${selectionText} satisfies \${1:any})$2`, createRange(selection.start.line, start, selection.end.line, end))
+    insertText(`(${selectionText} \${1|satisfies,as|} \${2:any})$3`, createRange(selection.start.line, start, selection.end.line, end))
     return true
   }
   else if (lineText[end] === ' ') {
