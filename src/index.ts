@@ -176,11 +176,19 @@ export = createExtension(() => {
         let temp = ''
         let flag = false
         let j = i
+        let emptyCount = 0
+        let isEmptyEnd = false
         while (j > 0) {
           const cur = lineText[--j]
           if (/\w/.test(cur)) {
             flag = true
             temp = `${cur}${temp}`
+            isEmptyEnd = false
+          }
+          else if (cur === ' ') {
+            temp = `${cur}${temp}`
+            emptyCount++
+            isEmptyEnd = true
           }
           else if (flag) {
             break
@@ -191,7 +199,7 @@ export = createExtension(() => {
         }
         if (temp.includes('async')) {
           updateText((edit) => {
-            const start = j + temp.indexOf('async') + 1
+            const start = j + temp.indexOf('async')
             let end = start + 'async'.length
             if (lineText[end] === ' ')
               end++
@@ -199,7 +207,11 @@ export = createExtension(() => {
           })
         }
         else {
-          insertText('async ', createPosition(selection.line, flag ? i + 1 : i))
+          let index = j
+          if (isEmptyEnd) {
+            index += emptyCount - 1
+          }
+          insertText('async ', createPosition(selection.line, flag ? index + 1 : index))
         }
         return
       }
@@ -629,8 +641,9 @@ export = createExtension(() => {
           updateText((edit) => {
             edit.replace(createRange([line, end], [line, end + 1]), '\'')
             edit.replace(createRange([line, start + 1], [line, start + 2]), '\'')
+            const _start = lineText.indexOf(content)
             for (const match of content.matchAll(/\$\{([^}]*)\}/g)) {
-              edit.replace(createRange([line, start + 1 + match.index], [line, start + 1 + match.index + match[0].length + 1]), match[1].trim())
+              edit.replace(createRange([line, _start + match.index], [line, _start + match.index + match[0].length]), match[1].trim())
             }
           })
         }
