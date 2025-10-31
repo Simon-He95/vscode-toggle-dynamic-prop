@@ -176,19 +176,17 @@ export = createExtension(() => {
         let temp = ''
         let flag = false
         let j = i
-        let emptyCount = 0
-        let isEmptyEnd = false
+        let newJ = null
         while (j > 0) {
           const cur = lineText[--j]
           if (/\w/.test(cur)) {
             flag = true
             temp = `${cur}${temp}`
-            isEmptyEnd = false
           }
           else if (cur === ' ') {
+            if (!newJ)
+              newJ = j
             temp = `${cur}${temp}`
-            emptyCount++
-            isEmptyEnd = true
           }
           else if (flag) {
             break
@@ -207,11 +205,10 @@ export = createExtension(() => {
           })
         }
         else {
-          let index = j
-          if (isEmptyEnd) {
-            index += emptyCount - 1
-          }
-          insertText('async ', createPosition(selection.line, flag ? index + 1 : index))
+          const index = newJ || j
+          updateText((edit) => {
+            edit.insert(createPosition(selection.line, flag ? index + 1 : index), 'async ')
+          })
         }
         return
       }

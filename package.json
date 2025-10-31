@@ -52,7 +52,7 @@
   "scripts": {
     "dev": "pnpm build --watch",
     "test": "vitest",
-    "build": "tsup src/index.ts --external vscode",
+    "build": "tsdown src/index.ts --external vscode --format cjs",
     "pack": "vsce package --no-dependencies",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix",
@@ -62,15 +62,15 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.16.0",
-    "@types/node": "^18.19.100",
+    "@types/node": "^18.19.130",
     "@types/vscode": "1.75.1",
     "@vscode-use/utils": "0.1.39",
-    "@vscode/vsce": "^3.4.0",
+    "@vscode/vsce": "^3.6.2",
     "bumpp": "^9.11.1",
-    "eslint": "^9.27.0",
-    "lazy-js-utils": "^0.1.44",
-    "tsup": "^6.7.0",
-    "typescript": "^5.8.3",
+    "eslint": "^9.38.0",
+    "lazy-js-utils": "^0.1.49",
+    "tsdown": "^0.15.12",
+    "typescript": "^5.9.3",
     "vitest": "^0.29.8"
   }
 }
