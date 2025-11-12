@@ -130,7 +130,7 @@ export = createExtension(() => {
           comma = option[0]
           start = option[1] - 1
         }
-        else if (/(?:export|export default)?\s*(?:async\s+)?(?:function\s+)?[\w<>]+\s*\([^)]*\)\s*\{/.test(lineText) && !hasSelection) {
+        else if (/(?:export|export default)?\s*(?:async\s+)?(?:function\s+)?[\w<>]+\s*\([^)]*\)(?::\s[^{]+)?\s*\{/.test(lineText) && !hasSelection) {
           toggleAsync(selection)
           logger.info('use toggleAsync')
           return
