@@ -54,7 +54,9 @@ export function toggleTsAny(selectionDetail: NonNullable<ReturnType<typeof getSe
       //
     }
     else if (!/^\([^\s)]+\s+(?:as|satisfies)\s[^)]+\)$/.test(content)) {
-      return
+      // end还原到原本位置
+      start = selection.start.character
+      end = selection.end.character
     }
   }
   // 如果选中内容后面根着 as any
