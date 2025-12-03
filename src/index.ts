@@ -206,7 +206,7 @@ export = createExtension(() => {
         }
         else {
           const index = newJ || j
-          if (/[\w\s]/.test(lineText[index])) {
+          if (/\w/.test(lineText[index])) {
             updateText((edit) => {
               edit.insert(createPosition(selection.line, flag ? index + 1 : index), 'async ')
             })
