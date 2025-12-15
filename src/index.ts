@@ -197,7 +197,7 @@ export = createExtension(() => {
         }
         if (temp.includes('async')) {
           updateText((edit) => {
-            const start = j + temp.indexOf('async')
+            const start = j + temp.indexOf('async') + (flag ? 1 : 0)
             let end = start + 'async'.length
             if (lineText[end] === ' ')
               end++
@@ -207,8 +207,16 @@ export = createExtension(() => {
         else {
           const index = newJ || j
           if (/\w/.test(lineText[index])) {
+            if (/\w/.test(lineText[index + 1])) {
+              return
+            }
             updateText((edit) => {
               edit.insert(createPosition(selection.line, flag ? index + 1 : index), 'async ')
+            })
+          }
+          else {
+            updateText((edit) => {
+              edit.insert(createPosition(selection.line, flag || lineText[index] === ' ' ? index + 1 : index), 'async ')
             })
           }
         }
